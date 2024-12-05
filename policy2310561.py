@@ -31,7 +31,7 @@ class Policy2310561(Policy):
 
     prod_size = [0, 0]
     stock_idx = -1
-    pos_x, pos_y = 0, 0
+    pos_x, pos_y = None, None
 
     # Pick a product that has demand > 0
     for prod in list_prods:
@@ -56,14 +56,15 @@ class Policy2310561(Policy):
                     for x in range(stock_w - prod_w + 1):
                         for y in range(stock_h - prod_h + 1):
                             if self._can_place_(stock, (x, y), (prod_w, prod_h)):
+                                #valid position found
                                 pos_x, pos_y = x, y #place in either orientation
+                                stock_idx = i
+                                prod_size = [prod_w, prod_h] #update prod_size
                                 break
                         if pos_x is not None and pos_y is not None:
                             break
 
                     if pos_x is not None and pos_y is not None:
-                        stock_idx = i
-                        prod_size = [prod_w, prod_h] #update prod_size
                         break
 
                 if pos_x is not None and pos_y is not None:
