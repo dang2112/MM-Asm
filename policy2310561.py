@@ -18,30 +18,36 @@ class Policy2310561(Policy):
         pass
 
     def get_action(self, observation, info):
-        # Student code here
-        aux_list = observation["products"] # tuple of dicts
+    # Student code here
+    aux_list = observation["products"]  # tuple of dicts
 
-        # Sort the prods in ascending
-        list_prods = list() # list of list_objs
-        for prod in aux_list:
-            # prod is tuple
-            prod_obj = ProdObj(prod)
-            list_prods.append(prod_obj)
-        list_prods.sort(reverse=True)
+    # Sort the products in ascending order by area
+    list_prods = list()  # list of ProdObj
+    for prod in aux_list:
+        #prod is tuple
+        prod_obj = ProdObj(prod)
+        list_prods.append(prod_obj)
+    list_prods.sort(reverse=True)
 
-        prod_size = [0, 0]
-        stock_idx = -1
-        pos_x, pos_y = 0, 0
+    prod_size = [0, 0]
+    stock_idx = -1
+    pos_x, pos_y = 0, 0
 
-        # Pick a product that has quality > 0
-        for prod in list_prods:
-            if prod.demand > 0:
-                prod_size = prod.size
+    # Pick a product that has demand > 0
+    for prod in list_prods:
+        if prod.demand > 0:
+            prod_size = prod.size
 
-                # Loop through all stocks
-                for i, stock in enumerate(observation["stocks"]):
-                    stock_w, stock_h = self._get_stock_size_(stock)
-                    prod_w, prod_h = prod_size
+            # Loop through all stocks
+            for i, stock in enumerate(observation["stocks"]):
+                stock_w, stock_h = self._get_stock_size_(stock)
+                prod_w, prod_h = prod_size
+
+                # Check both original and rotated sizes
+                possible_orientations = [(prod_w, prod_h), (prod_h, prod_w)]
+
+                for orientation in possible_orientations:
+                    prod_w, prod_h = orientation #prod_w and _h can now be either orientation
 
                     if stock_w < prod_w or stock_h < prod_h:
                         continue
@@ -49,20 +55,25 @@ class Policy2310561(Policy):
                     pos_x, pos_y = None, None
                     for x in range(stock_w - prod_w + 1):
                         for y in range(stock_h - prod_h + 1):
-                            if self._can_place_(stock, (x, y), prod_size):
-                                pos_x, pos_y = x, y
+                            if self._can_place_(stock, (x, y), (prod_w, prod_h)):
+                                pos_x, pos_y = x, y #place in either orientation
                                 break
                         if pos_x is not None and pos_y is not None:
                             break
 
                     if pos_x is not None and pos_y is not None:
                         stock_idx = i
+                        prod_size = [prod_w, prod_h] #update prod_size
                         break
 
                 if pos_x is not None and pos_y is not None:
                     break
 
-        return {"stock_idx": stock_idx, "size": prod_size, "position": (pos_x, pos_y)}
+        if pos_x is not None and pos_y is not None:
+            break
+
+    return {"stock_idx": stock_idx, "size": prod_size, "position": (pos_x, pos_y)}
+
 
 
     # Student code here
