@@ -38,7 +38,7 @@ class Policy2310561(Policy):
             if prod.demand > 0:
                 prod_size = prod.size
     
-                # Loop through all stocks
+                # Loop through all stocks (this will be changed to using a StockObj class; the algorithm will try to use ordered_used_stocks before getting a new stock.)
                 for i, stock in enumerate(observation["stocks"]):
                     stock_w, stock_h = self._get_stock_size_(stock)
                     prod_w, prod_h = prod_size
