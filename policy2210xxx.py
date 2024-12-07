@@ -42,29 +42,27 @@ class Policy2210xxx(Policy):
                 for i, stock in enumerate(observation["stocks"]):
                     stock_w, stock_h = self._get_stock_size_(stock)
                     prod_w, prod_h = prod_size
-
-                    if stock_w < prod_w or stock_h < prod_h:
-                        if stock_w < prod_h or stock_h < prod_w:
-                            continue
-                        else:
-                            # swap h and w
-                            temp = prod_h
-                            prod_h = prod_w
-                            prod_w = temp
-
-                    # product is "accepted" to be put into this stock
-                    pos_x, pos_y = None, None
-                    for x in range(stock_w - prod_w + 1):
-                        for y in range(stock_h - prod_h + 1):
-                            if self._can_place_(stock, (x, y), prod_size):
-                                pos_x, pos_y = x, y
+                    if stock_w >= prod_w and stock_h >= prod_h:
+                        pos_x, pos_y = None, None
+                        for x in range(stock_w - prod_w + 1):
+                            for y in range(stock_h - prod_h + 1):
+                                if self._can_place_(stock, (x, y), prod_size):
+                                    pos_x, pos_y = x, y
+                                    break
+                            if pos_x is not None and pos_y is not None:
                                 break
+                        if pos_x is None and pos_y is None:
+                            for x in range(stock_w - prod_h + 1):
+                                for y in range(stock_h - prod_w + 1):
+                                    if self._can_place_(stock, (x, y), prod_size[::-1]):
+                                        prod_size = prod_size[::-1]
+                                        pos_x, pos_y = x, y
+                                        break
+                                if pos_x is not None and pos_y is not None:
+                                    break
                         if pos_x is not None and pos_y is not None:
+                            stock_idx = i
                             break
-
-                    if pos_x is not None and pos_y is not None:
-                        stock_idx = i
-                        break
 
                 if pos_x is not None and pos_y is not None:
                     break
