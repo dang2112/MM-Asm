@@ -87,7 +87,16 @@ class Policy2210xxx(Policy):
                             stock_idx = stock.orgidx
                             break
                 if pos_x is not None and pos_y is not None:
+                    # if stock is placed, stop
                     break
+                else:
+                    # if not, use a new stock and place the product into it
+                    new_stock = unused_stocks.pop(0)
+                    stock_idx = new_stock.orgidx
+                    pos_x = 0
+                    pos_y = 0
+                    used_stocks.append(new_stock)
+                    used_stocks.sort()
 
         return {"stock_idx": stock_idx, "size": prod_size, "position": (pos_x, pos_y)}
 
