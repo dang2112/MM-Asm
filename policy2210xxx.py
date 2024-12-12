@@ -55,7 +55,7 @@ class Policy2210xxx(Policy):
         for prod in observation["products"]:
             prod_obj = ProdObj(prod)
             list_prods.append(prod_obj)
-        list_prods.sort(reverse=True)
+        list_prods.sort(reverse=True) #i suspect there may be a problem with how the products are sorted; it seems the biggest are not actually being sorted?
 
         prod_size = [0, 0]
         stock_idx = -1
@@ -68,24 +68,23 @@ class Policy2210xxx(Policy):
                 stock_obj = StockObj(stock, i)
                 if self.first_stock is None:
                     self.first_stock = stock_obj
-                    print(f"Initialized first_stock with rmarea: {self.first_stock.rmarea}")
                 self.unused_stocks.append(stock_obj)
-            self.unused_stocks.sort(reverse=True)
+            self.unused_stocks.sort(reverse=True) 
 
-        # Debug: Update the `previous_rmarea` for the first_stock
+        # Update the `previous_rmarea` for the first_stock
         if self.first_stock is not None:
             self.previous_rmarea = self.first_stock.rmarea
         # ACTUAL PLACING PRODUCTS INTO STOCKS
         print("Placing Products...")
-        # Ensure product has demand > 0
         for prod in list_prods:
+        # Ensure product has demand > 0
             if prod.demand > 0:
                 prod_size = prod.size
-                # Iterate through used stocks
                 pos_x = None
                 pos_y = None
                 best_fit_area = 10001
                 best_fit_idx = -1
+                # Iterate through used stocks
                 for stock in self.used_stocks:
                     stock_w = stock.width
                     stock_h = stock.height
@@ -116,19 +115,26 @@ class Policy2210xxx(Policy):
                         if pos_x is not None and pos_y is not None:
                             stock_idx = best_fit_idx
                             stock.rmarea -= prod_w * prod_h
-                            #self.used_stocks.sort()
+                            self.used_stocks.sort(reverse=True)
                             break
                 if pos_x is not None and pos_y is not None:
                     # if stock is placed, stop
                     break
                 else:
-                    # if not, use a new stock, place the product into it and update rmarea
-                    new_stock = self.unused_stocks.pop(0)
-                    stock_idx = new_stock.orgidx
-                    pos_x = 0
-                    pos_y = 0
-                    self.used_stocks.append(new_stock)
-                    #self.used_stocks.sort()
+                    # if not, use a new stock, place the product into it
+                   for new_stock in self.unused_stocks:
+                        stock_w = new_stock.width
+                        stock_h = new_stock.height
+                        prod_w, prod_h = prod.size
+                        if (stock_w >= prod_w and stock_h >= prod_h) or (stock_w >= prod_h and stock_h >= prod_w): #crude way to check if the stock fits
+                            self.unused_stocks.remove(new_stock)
+                            stock_idx = new_stock.orgidx
+                            pos_x = 0
+                            pos_y = 0
+                            self.used_stocks.append(new_stock)
+                            self.used_stocks.sort(reverse=True)
+                            break
+
 
         return {"stock_idx": stock_idx, "size": prod_size, "position": (pos_x, pos_y)}
 
